@@ -1,0 +1,90 @@
+/* NOTE: If this code is viewed in a standard C/C++ editor (like VS Code
+// or Codespaces without Arduino extensions), you may see syntax errors
+// (e.g., "pinMode is undefined").
+// This is because the editor's syntax checker does not recognize the 
+// built-in Arduino core functions. The code is correct for Arduino.*/
+
+int echoPin = 8;   // Echo pin of ultrasonic sensor
+int trigPin = 7;   // Trigger pin of ultrasonic sensor
+
+// Motor control pins
+int in1 = 4;
+int in2 = 5;
+int in3 = 9;
+int in4 = 10;
+
+int ledpin = 13;   // LED indicator
+
+long duration;     // Time taken for ultrasonic pulse to return
+int distance;      // Calculated distance in cm
+
+void setup() {
+  // Setup pins
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+  pinMode(ledpin, OUTPUT);
+
+  // For debugging in Serial Monitor
+  Serial.begin(9600);
+}
+
+void loop() {
+  // --- Ultrasonic distance measurement ---
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Measure the time of the returning echo
+  duration = pulseIn(echoPin, HIGH);
+
+  // Convert time into distance (speed of sound = 0.034 cm/us)
+  distance = duration * 0.034 / 2;
+
+  // Print distance to Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  // --- Movement logic based on distance ---
+  if (distance <= 15) {
+    // Too close → move backward
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
+    digitalWrite(ledpin, HIGH); // LED on
+  } 
+  else if (distance <= 30) {
+    // Safe distance → stop
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, LOW);
+    digitalWrite(ledpin, LOW);  // LED off
+  } 
+  else if (distance <= 45) {
+    // Object detected but far → move forward
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+    digitalWrite(ledpin, HIGH); // LED on
+  } 
+  else {
+    // Out of range → stop
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, LOW);
+    digitalWrite(ledpin, LOW);  // LED off
+  }
+
+  delay(50); // Small delay for stability
+}
